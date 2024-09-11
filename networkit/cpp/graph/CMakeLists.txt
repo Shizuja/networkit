@@ -4,6 +4,7 @@ networkit_add_module(graph
     GraphTools.cpp
     Hypergraph.cpp
     HypergraphTools.cpp
+    HypergraphExpansions.cpp
     KruskalMSF.cpp
     RandomMaximumSpanningForest.cpp
     SpanningForest.cpp

@@ -8,6 +8,7 @@ networkit_add_test(graph TopologicalSortGTest)
 networkit_add_test(graph AttributeGTest graph)
 networkit_add_test(graph HypergraphGTest generators graph)
 networkit_add_test(graph HypergraphToolsGTest generators graph)
+networkit_add_test(graph HypergraphExpansionsGTest generators graph)
 
 networkit_add_benchmark(graph Graph2Benchmark)
 networkit_add_benchmark(graph GraphBenchmark auxiliary)
