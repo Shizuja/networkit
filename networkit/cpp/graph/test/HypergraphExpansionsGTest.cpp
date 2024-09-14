@@ -65,7 +65,7 @@ TEST_P(HypergraphExpansionsGTest, testLineExpansion) {
 
     ASSERT_EQ(hGraph.numberOfNodes(), 4);
     ASSERT_EQ(hGraph.numberOfEdges(), 3);
-    /*
+    
     auto output = HypergraphExpansions::lineExpansion(hGraph);
     Graph lGraph = output.first;
     auto nodeMap = output.second;
@@ -77,7 +77,7 @@ TEST_P(HypergraphExpansionsGTest, testLineExpansion) {
         node o_node = entry.second.first;
         edgeid o_edge = entry.second.second;
         ASSERT_TRUE(hGraph.hasNode(o_node, o_edge));
-    }*/
+    }
 }
 
 TEST_P(HypergraphExpansionsGTest, testRecoverHypergraphFromLineExpansion) {
@@ -88,7 +88,7 @@ TEST_P(HypergraphExpansionsGTest, testRecoverHypergraphFromLineExpansion) {
 
     ASSERT_EQ(hGraph.numberOfNodes(), 4);
     ASSERT_EQ(hGraph.numberOfEdges(), 3);
-    /*
+    
     auto output = HypergraphExpansions::lineExpansion(hGraph);
 
     ASSERT_EQ(output.first.numberOfNodes(), 7);
@@ -100,9 +100,14 @@ TEST_P(HypergraphExpansionsGTest, testRecoverHypergraphFromLineExpansion) {
         ASSERT_TRUE(rGraph.hasEdge(eid));
     });
 
-    hGraph.forNodes([&](node node) {
-        ASSERT_TRUE(rGraph.getNeighbors(node) == hGraph.getNeighbors(node));
-    });*/
+    ASSERT_TRUE(rGraph.hasNode(0,0));
+    ASSERT_TRUE(rGraph.hasNode(1,0));
+    ASSERT_TRUE(rGraph.hasNode(1,1));
+    ASSERT_TRUE(rGraph.hasNode(2,1));
+    ASSERT_TRUE(rGraph.hasNode(3,1));
+    ASSERT_TRUE(rGraph.hasNode(0,2));
+    ASSERT_TRUE(rGraph.hasNode(3,2));
+    ASSERT_FALSE(rGraph.hasNode(2,0));
 }
 
 } //namespace NetworKit

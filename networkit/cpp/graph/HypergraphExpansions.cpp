@@ -45,7 +45,7 @@ Graph HypergraphExpansions::cliqueExpansion(Hypergraph &hypergraph) {
     return cliqueExpansion;
 }
 
-std::pair<NetworKit::Graph, std::map<NetworKit::node, std::pair<NetworKit::node, NetworKit::edgeid>>> lineExpansion(NetworKit::Hypergraph &hypergraph) {
+std::pair<NetworKit::Graph, std::map<NetworKit::node, std::pair<NetworKit::node, NetworKit::edgeid>>> HypergraphExpansions::lineExpansion(NetworKit::Hypergraph &hypergraph) {
     /*
     Converts a hypergraph into its line expansion (a simple graph)
 
@@ -89,11 +89,17 @@ std::pair<NetworKit::Graph, std::map<NetworKit::node, std::pair<NetworKit::node,
             //access the pair of data from the original hypergraph in each nodeMap entry
             auto pair1 = iterator1.second;
             auto pair2 = iterator2.second;
+            //std::cout << "current Pair 1 (Node, Edgeid): " << pair1.first << pair1.second << std::endl;
+            //std::cout << "current Pair 2 (Node, Edgeid): " << pair2.first << pair2.second << std::endl;
             //only check pair that are not the same
-            if(pair1.first != pair2.first && pair1.second != pair2.second){
+            if(pair1.first != pair2.first || pair1.second != pair2.second){
+                //std::cout << "Not the same!" << std::endl;
                 //add edge if a pair of entries in nodeMap refer to the same node or hyperedge in the original hypergraph
                 if(pair1.first == pair2.first || pair1.second == pair2.second){
-                    lineExpansion.addEdge(iterator1.first, iterator2.first);
+                    //std::cout << "Connected!" << std::endl;
+                    if(!lineExpansion.hasEdge(iterator1.first, iterator2.first)) {
+                        lineExpansion.addEdge(iterator1.first, iterator2.first);
+                    }
                 }
             }
         }
@@ -101,7 +107,7 @@ std::pair<NetworKit::Graph, std::map<NetworKit::node, std::pair<NetworKit::node,
     return {lineExpansion, nodeMap};
 }
 
-NetworKit::Hypergraph reconstructHypergraphFromLineExpansion(NetworKit::Graph &lineExpansionGraph, std::map<NetworKit::node, std::pair<NetworKit::node, NetworKit::edgeid>> &nodeMap) {
+NetworKit::Hypergraph HypergraphExpansions::reconstructHypergraphFromLineExpansion(NetworKit::Graph &lineExpansionGraph, std::map<NetworKit::node, std::pair<NetworKit::node, NetworKit::edgeid>> &nodeMap) {
     /*
     Reconstructs the original hypergraph from its line expansion
 
@@ -128,11 +134,10 @@ NetworKit::Hypergraph reconstructHypergraphFromLineExpansion(NetworKit::Graph &l
     lineExpansionGraph.forNodes([&](NetworKit::node node) {
         //get original node and hyperedge from nodeMap
         std::pair<NetworKit::node, NetworKit::edgeid> entry = nodeMap.at(node);
-        //add original node to corresponding hyperedge set (add hyperedge if it does not exist already)
-        if (hyperedges.count(entry.first) == 0) {
-            hyperedges[entry.first] = {};
-        }
-        hyperedges[entry.first].insert(entry.second);
+        //std::cout << "Current Node: " << entry.first << " Current Edge: " << entry.second << std::endl;
+        //add original node to corresponding hyperedge set
+        hyperedges[entry.second].insert(entry.first);
+        //std::cout << "Node " << entry.first << " inserted into hyperedge " << entry.second << std::endl;
         //if node does not exist in hypergraph already, add it
         if (nodes.find(entry.first) == nodes.end()) {
             nodes.insert(entry.first);
