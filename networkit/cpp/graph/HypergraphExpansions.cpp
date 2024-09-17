@@ -6,6 +6,7 @@
  */
 #include <networkit/graph/Hypergraph.hpp>
 #include <networkit/graph/HypergraphExpansions.hpp>
+#include <networkit/centrality/Betweenness.hpp>
 #include <map>
 #include <set>
 #include <vector>
@@ -153,6 +154,45 @@ NetworKit::Hypergraph HypergraphExpansions::reconstructHypergraphFromLineExpansi
         hypergraph.addEdge(vec);
     }
     return hypergraph;
+}
+
+size_t HypergraphExpansions::getIntersectionSize(Hypergraph &hypergraph, edgeid eid1, edgeid eid2, node node) {
+    if(hypergraph.hasNode(node, eid1) && hypergraph.hasNode(node, eid2)) {
+        size_t intersection_size = 1;
+        for (NetworKit::node neighbor : hypergraph.getNeighbors(node)) {
+            if(hypergraph.hasNode(neighbor, eid1) && hypergraph.hasNode(neighbor, eid2)) {
+                intersection_size++;
+            }
+        }
+        return intersection_size;
+    }
+    return 0;
+}
+
+std::vector<nodeweight> HypergraphExpansions::lineExpansionWeightedBetweenness(Graph &G, std::map<node, std::pair<node, edgeid>> &nodeMap, bool normalized) {
+
+    Betweenness centrality(G, normalized);
+    centrality.run();
+    Hypergraph H = HypergraphExpansions::reconstructHypergraphFromLineExpansion(G, nodeMap);
+    std::vector<nodeweight> betweennessScores(H.numberOfNodes());
+    std::map<node, std::set<edgeid>> intersection;
+
+    for (std::pair<const node, std::pair<node, edgeid>> entry : nodeMap) {
+        intersection[entry.second.first].insert(entry.second.second);
+        betweennessScores[entry.second.first] += centrality.scores().at(entry.first);
+    }
+    H.forNodes([&](node node) {
+        if(intersection[node].size() == 1) {
+            //nothing needed
+        } else if(intersection[node].size() == 2) {
+            edgeid eid1 = *intersection[node].begin();
+            edgeid eid2 = *std::next(intersection[node].begin(), 1);
+            betweennessScores[node] /= HypergraphExpansions::getIntersectionSize(H, eid1, eid2, node);
+        } else {
+            throw std::invalid_argument("Hypergraph contains nodes which are part of more than 2 hyperedges. Currently this function does not support such hypergraphs.");
+        }
+    });
+    return betweennessScores;
 }
 
 } //namespace NetworKit

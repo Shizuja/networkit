@@ -42,9 +42,6 @@ TEST_P(HypergraphExpansionsGTest, testCliqueExpansion) {
     hGraph.addEdge({0, 1});
     hGraph.addEdge({1, 2, 3});
     hGraph.addEdge({0, 3});
-
-    EXPECT_EQ(hGraph.numberOfNodes(), 4);
-    EXPECT_EQ(hGraph.numberOfEdges(), 3);
     
     Graph cGraph = HypergraphExpansions::cliqueExpansion(hGraph);
 
@@ -62,16 +59,13 @@ TEST_P(HypergraphExpansionsGTest, testLineExpansion) {
     hGraph.addEdge({0, 1});
     hGraph.addEdge({1, 2, 3});
     hGraph.addEdge({0, 3});
-
-    ASSERT_EQ(hGraph.numberOfNodes(), 4);
-    ASSERT_EQ(hGraph.numberOfEdges(), 3);
     
     auto output = HypergraphExpansions::lineExpansion(hGraph);
     Graph lGraph = output.first;
     auto nodeMap = output.second;
 
-    ASSERT_EQ(lGraph.numberOfNodes(), 7);
-    ASSERT_EQ(lGraph.numberOfEdges(), 8);
+    EXPECT_EQ(lGraph.numberOfNodes(), 7);
+    EXPECT_EQ(lGraph.numberOfEdges(), 8);
 
     for (auto entry : nodeMap) {
         node o_node = entry.second.first;
@@ -85,14 +79,11 @@ TEST_P(HypergraphExpansionsGTest, testRecoverHypergraphFromLineExpansion) {
     hGraph.addEdge({0, 1});
     hGraph.addEdge({1, 2, 3});
     hGraph.addEdge({0, 3});
-
-    ASSERT_EQ(hGraph.numberOfNodes(), 4);
-    ASSERT_EQ(hGraph.numberOfEdges(), 3);
     
     auto output = HypergraphExpansions::lineExpansion(hGraph);
 
-    ASSERT_EQ(output.first.numberOfNodes(), 7);
-    ASSERT_EQ(output.first.numberOfEdges(), 8);
+    EXPECT_EQ(output.first.numberOfNodes(), 7);
+    EXPECT_EQ(output.first.numberOfEdges(), 8);
 
     Hypergraph rGraph = HypergraphExpansions::reconstructHypergraphFromLineExpansion(output.first, output.second);
 
@@ -108,6 +99,41 @@ TEST_P(HypergraphExpansionsGTest, testRecoverHypergraphFromLineExpansion) {
     ASSERT_TRUE(rGraph.hasNode(0,2));
     ASSERT_TRUE(rGraph.hasNode(3,2));
     ASSERT_FALSE(rGraph.hasNode(2,0));
+}
+
+TEST_P(HypergraphExpansionsGTest, testGetIntersectionSize) {
+    Hypergraph hGraph(4);
+    hGraph.addEdge({0, 1});
+    hGraph.addEdge({1, 2, 3});
+    hGraph.addEdge({2, 3});
+
+    EXPECT_EQ(HypergraphExpansions::getIntersectionSize(hGraph, 0, 1, 1), 1);
+    EXPECT_EQ(HypergraphExpansions::getIntersectionSize(hGraph, 0, 1, 0), 0);
+    EXPECT_EQ(HypergraphExpansions::getIntersectionSize(hGraph, 0, 2, 1), 0);
+    EXPECT_EQ(HypergraphExpansions::getIntersectionSize(hGraph, 1, 2, 3), 2);
+    EXPECT_EQ(HypergraphExpansions::getIntersectionSize(hGraph, 1, 2, 2), 2);
+}
+
+TEST_P(HypergraphExpansionsGTest, testLineExpansionWeightedBetweenness) {
+    Hypergraph hGraph(4);
+    hGraph.addEdge({0, 1});
+    hGraph.addEdge({1, 2, 3});
+    hGraph.addEdge({2, 3});
+
+    std::pair<Graph, std::map<node, std::pair<node, edgeid>>> lineExpansion = HypergraphExpansions::lineExpansion(hGraph);
+    auto scores = HypergraphExpansions::lineExpansionWeightedBetweenness(lineExpansion.first, lineExpansion.second, false);
+
+    EXPECT_EQ(scores.at(0), 0);
+    EXPECT_EQ(scores.at(1), 26);
+    EXPECT_EQ(scores.at(2), 4);
+    EXPECT_EQ(scores.at(3), 4);
+
+    scores = HypergraphExpansions::lineExpansionWeightedBetweenness(lineExpansion.first, lineExpansion.second, true);
+
+    EXPECT_EQ(scores.at(0), 0);
+    EXPECT_EQ(scores.at(1), 13.0/15.0);
+    EXPECT_EQ(scores.at(2), 2.0/15.0);
+    EXPECT_EQ(scores.at(3), 2.0/15.0);
 }
 
 } //namespace NetworKit
