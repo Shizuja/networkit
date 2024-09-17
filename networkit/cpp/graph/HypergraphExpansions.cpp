@@ -197,19 +197,18 @@ std::vector<nodeweight> HypergraphExpansions::lineExpansionWeightedBetweenness(G
 
 std::vector<nodeweight> HypergraphExpansions::lineExpansionBetweenness(Graph &G, std::map<node, std::pair<node, edgeid>> &nodeMap, bool normalized, bool additive) {
 
-    Betweenness centrality(G, normalized);
+        Betweenness centrality(G, normalized);
     centrality.run();
-    std::vector<nodeweight> betweennessScores(HypergraphExpansions::numberOfNodesFromNodeMap(nodeMap));
+    std::vector<nodeweight> betweennessScores(HypergraphExpansions::numberOfNodesFromNodeMap(nodeMap), 0);
     std::vector<size_t> memberOfHyperedges(HypergraphExpansions::memberOfHyperedges(nodeMap));
-
     for(std::pair<const node, std::pair<node, edgeid>> entry : nodeMap) {
         betweennessScores[entry.second.first] += centrality.scores().at(entry.first);
-    } 
+    }
     if(!additive) {
         for (size_t i = 0; i < betweennessScores.size(); i++) {
             betweennessScores[i] /= memberOfHyperedges[i];
         }
-    }    
+    }  
     return betweennessScores;
 }
 
@@ -230,6 +229,14 @@ std::vector<size_t> HypergraphExpansions::memberOfHyperedges(std::map<node, std:
     for(std::pair<node, std::pair<node, edgeid>> entry : nodeMap) {
         values[entry.second.first]++;
     }
+    for (size_t i = 0; i < values.size(); i++) {
+        if (values[i] < 1)
+        {
+            std::cout << i << std::endl;
+            throw std::invalid_argument("Hypergraph contains nodes which are not part of any hyperedges.");
+        }
+    }
+    
     return values;
 }
 
