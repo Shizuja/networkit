@@ -136,4 +136,66 @@ TEST_P(HypergraphExpansionsGTest, testLineExpansionWeightedBetweenness) {
     EXPECT_EQ(scores.at(3), 2.0/15.0);
 }
 
+TEST_P(HypergraphExpansionsGTest, testLineExpansionBetweenness) {
+    Hypergraph hGraph(4);
+    hGraph.addEdge({0, 1});
+    hGraph.addEdge({1, 2, 3});
+    hGraph.addEdge({2, 3});
+
+    std::pair<Graph, std::map<node, std::pair<node, edgeid>>> lineExpansion = HypergraphExpansions::lineExpansion(hGraph);
+    auto scores = HypergraphExpansions::lineExpansionBetweenness(lineExpansion.first, lineExpansion.second, false, true);
+
+    EXPECT_EQ(scores.at(0), 0);
+    EXPECT_EQ(scores.at(1), 26);
+    EXPECT_EQ(scores.at(2), 8);
+    EXPECT_EQ(scores.at(3), 8);
+
+    scores = HypergraphExpansions::lineExpansionBetweenness(lineExpansion.first, lineExpansion.second, true, true);
+
+    EXPECT_EQ(scores.at(0), 0);
+    EXPECT_EQ(scores.at(1), 13.0/15.0);
+    EXPECT_EQ(scores.at(2), 4.0/15.0);
+    EXPECT_EQ(scores.at(3), 4.0/15.0);
+
+    scores = HypergraphExpansions::lineExpansionBetweenness(lineExpansion.first, lineExpansion.second, false, false);
+
+    EXPECT_EQ(scores.at(0), 0);
+    EXPECT_EQ(scores.at(1), 13);
+    EXPECT_EQ(scores.at(2), 4);
+    EXPECT_EQ(scores.at(3), 4);
+
+    scores = HypergraphExpansions::lineExpansionBetweenness(lineExpansion.first, lineExpansion.second, true, false);
+
+    EXPECT_EQ(scores.at(0), 0);
+    EXPECT_EQ(scores.at(1), 6.5/15.0);
+    EXPECT_EQ(scores.at(2), 2.0/15.0);
+    EXPECT_EQ(scores.at(3), 2.0/15.0);
+}
+
+TEST_P(HypergraphExpansionsGTest, testNumberOfNodesFromNodeMap) {
+    Hypergraph hGraph(4);
+    hGraph.addEdge({0, 1});
+    hGraph.addEdge({1, 2, 3});
+    hGraph.addEdge({2, 3});
+
+    std::pair<Graph, std::map<node, std::pair<node, edgeid>>> lineExpansion = HypergraphExpansions::lineExpansion(hGraph);
+
+    EXPECT_EQ(HypergraphExpansions::numberOfNodesFromNodeMap(lineExpansion.second), 4);
+}
+
+TEST_P(HypergraphExpansionsGTest, testMemberOfHyperedges) {
+    Hypergraph hGraph(4);
+    hGraph.addEdge({0, 1});
+    hGraph.addEdge({1, 2, 3});
+    hGraph.addEdge({2, 3});
+
+    std::pair<Graph, std::map<node, std::pair<node, edgeid>>> lineExpansion = HypergraphExpansions::lineExpansion(hGraph);
+    std::vector<NetworKit::node> values = HypergraphExpansions::memberOfHyperedges(lineExpansion.second);
+
+    EXPECT_EQ(values[0],1);
+    EXPECT_EQ(values[1],2);
+    EXPECT_EQ(values[2],2);
+    EXPECT_EQ(values[2],2);
+}
+
 } //namespace NetworKit

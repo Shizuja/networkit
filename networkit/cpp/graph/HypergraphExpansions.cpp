@@ -195,4 +195,42 @@ std::vector<nodeweight> HypergraphExpansions::lineExpansionWeightedBetweenness(G
     return betweennessScores;
 }
 
+std::vector<nodeweight> HypergraphExpansions::lineExpansionBetweenness(Graph &G, std::map<node, std::pair<node, edgeid>> &nodeMap, bool normalized, bool additive) {
+
+    Betweenness centrality(G, normalized);
+    centrality.run();
+    std::vector<nodeweight> betweennessScores(HypergraphExpansions::numberOfNodesFromNodeMap(nodeMap));
+    std::vector<size_t> memberOfHyperedges(HypergraphExpansions::memberOfHyperedges(nodeMap));
+
+    for(std::pair<const node, std::pair<node, edgeid>> entry : nodeMap) {
+        betweennessScores[entry.second.first] += centrality.scores().at(entry.first);
+    } 
+    if(!additive) {
+        for (size_t i = 0; i < betweennessScores.size(); i++) {
+            betweennessScores[i] /= memberOfHyperedges[i];
+        }
+    }    
+    return betweennessScores;
+}
+
+size_t HypergraphExpansions::numberOfNodesFromNodeMap(std::map<node, std::pair<node, edgeid>> &nodeMap) {
+    std::set<node> seen;
+    size_t numberOfNodes = 0;
+    for(std::pair<node, std::pair<node, edgeid>> entry : nodeMap) {
+        if(seen.find(entry.second.first) == seen.end()) {
+            seen.insert(entry.second.first);
+            numberOfNodes++;
+        }
+    }
+    return numberOfNodes;
+}
+
+std::vector<size_t> HypergraphExpansions::memberOfHyperedges(std::map<node, std::pair<node, edgeid>> &nodeMap) {
+    std::vector<size_t> values(HypergraphExpansions::numberOfNodesFromNodeMap(nodeMap));
+    for(std::pair<node, std::pair<node, edgeid>> entry : nodeMap) {
+        values[entry.second.first]++;
+    }
+    return values;
+}
+
 } //namespace NetworKit
