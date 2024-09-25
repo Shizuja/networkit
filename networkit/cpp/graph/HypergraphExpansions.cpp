@@ -232,8 +232,8 @@ std::vector<size_t> HypergraphExpansions::memberOfHyperedges(std::map<node, std:
     for (size_t i = 0; i < values.size(); i++) {
         if (values[i] < 1)
         {
-            std::cout << i << std::endl;
-            throw std::invalid_argument("Hypergraph contains nodes which are not part of any hyperedges.");
+            values[i] = 1;
+            std::cout << "Following node is not part of any hyperedge: " << i << std::endl;
         }
     }
     
