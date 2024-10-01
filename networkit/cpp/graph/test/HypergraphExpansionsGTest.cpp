@@ -101,17 +101,19 @@ TEST_P(HypergraphExpansionsGTest, testRecoverHypergraphFromLineExpansion) {
     ASSERT_FALSE(rGraph.hasNode(2,0));
 }
 
-TEST_P(HypergraphExpansionsGTest, testGetIntersectionSize) {
+TEST_P(HypergraphExpansionsGTest, testGetIntersection) {
     Hypergraph hGraph(4);
     hGraph.addEdge({0, 1});
     hGraph.addEdge({1, 2, 3});
     hGraph.addEdge({2, 3});
 
-    EXPECT_EQ(HypergraphExpansions::getIntersectionSize(hGraph, 0, 1, 1), 1);
-    EXPECT_EQ(HypergraphExpansions::getIntersectionSize(hGraph, 0, 1, 0), 0);
-    EXPECT_EQ(HypergraphExpansions::getIntersectionSize(hGraph, 0, 2, 1), 0);
-    EXPECT_EQ(HypergraphExpansions::getIntersectionSize(hGraph, 1, 2, 3), 2);
-    EXPECT_EQ(HypergraphExpansions::getIntersectionSize(hGraph, 1, 2, 2), 2);
+    std::set<node> intersection0_1{1};
+    std::set<node> intersection1_2{2, 3};
+    std::set<node> intersection2_0{};
+
+    EXPECT_EQ(HypergraphExpansions::getIntersection(hGraph, 0, 1), intersection0_1);
+    EXPECT_EQ(HypergraphExpansions::getIntersection(hGraph, 1, 2), intersection1_2);
+    EXPECT_EQ(HypergraphExpansions::getIntersection(hGraph, 2, 0), intersection2_0);
 }
 
 TEST_P(HypergraphExpansionsGTest, testLineExpansionWeightedBetweenness) {
@@ -196,6 +198,67 @@ TEST_P(HypergraphExpansionsGTest, testMemberOfHyperedges) {
     EXPECT_EQ(values[1],2);
     EXPECT_EQ(values[2],2);
     EXPECT_EQ(values[2],2);
+}
+
+TEST_P(HypergraphExpansionsGTest, testGetEdgeMembers) {
+    Hypergraph hGraph(4);
+    hGraph.addEdge({0, 1});
+    hGraph.addEdge({1, 2, 3});
+    hGraph.addEdge({2, 3});
+
+    std::set<node> edge0{0, 1};
+    std::set<node> edge1{1, 2, 3};
+    std::set<node> edge2{2, 3};
+
+    EXPECT_EQ(HypergraphExpansions::getEdgeMembers(hGraph, 0),edge0);
+    EXPECT_EQ(HypergraphExpansions::getEdgeMembers(hGraph, 1),edge1);
+    EXPECT_EQ(HypergraphExpansions::getEdgeMembers(hGraph, 2),edge2);
+}
+
+TEST_P(HypergraphExpansionsGTest, testGetAllEdgeMembers) {
+    Hypergraph hGraph(4);
+    hGraph.addEdge({0, 1});
+    hGraph.addEdge({1, 2, 3});
+    hGraph.addEdge({2, 3});
+
+    std::set<node> edge0{0, 1};
+    std::set<node> edge1{1, 2, 3};
+    std::set<node> edge2{2, 3};
+
+    std::map<edgeid, std::set<node>> edge_members = HypergraphExpansions::getAllEdgeMembers(hGraph);
+
+    EXPECT_EQ(edge_members[0],edge0);
+    EXPECT_EQ(edge_members[1],edge1);
+    EXPECT_EQ(edge_members[2],edge2);
+}
+
+TEST_P(HypergraphExpansionsGTest, testLineGraph) {
+    Hypergraph hGraph(4);
+    hGraph.addEdge({0, 1});
+    hGraph.addEdge({1, 2, 3});
+    hGraph.addEdge({2, 3});
+
+    Graph weightedLineGraph = HypergraphExpansions::lineGraph(hGraph, true);
+    EXPECT_TRUE(weightedLineGraph.hasEdge(1,2));
+    EXPECT_EQ(weightedLineGraph.weight(1, 2), 0.5);
+    EXPECT_FALSE(weightedLineGraph.hasEdge(2,0));
+    EXPECT_EQ(weightedLineGraph.weight(2, 0), 0.0);
+
+
+    Graph unweightedLineGraph = HypergraphExpansions::lineGraph(hGraph, false);
+    EXPECT_TRUE(unweightedLineGraph.hasEdge(0,1));
+    EXPECT_TRUE(unweightedLineGraph.hasEdge(1,2));
+    EXPECT_FALSE(unweightedLineGraph.hasEdge(2,0));
+}
+
+TEST_P(HypergraphExpansionsGTest, testWeight) {
+    Graph graph(3, true);
+    graph.addEdge(0, 1, 2.5);
+    graph.addEdge(0, 2, 0.5);
+
+    EXPECT_TRUE(graph.isWeighted());
+    EXPECT_EQ(graph.weight(0, 1), 2.5);
+    EXPECT_EQ(graph.weight(0, 2), 0.5);
 }
 
 } //namespace NetworKit
