@@ -336,7 +336,7 @@ std::vector<nodeweight> HypergraphExpansions::lineGraphBetweenness(Hypergraph &h
 
     if(normalized) {
         for (size_t i = 0; i < centrality_scores.size(); i++) {
-            centrality_scores.at(i) /= number_of_shortest_paths++;
+            centrality_scores.at(i) /= number_of_shortest_paths;
         }
     }
     return centrality_scores;
