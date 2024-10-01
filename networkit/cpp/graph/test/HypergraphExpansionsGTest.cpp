@@ -12,6 +12,7 @@
 #include <networkit/graph/HypergraphExpansions.hpp>
 #include <networkit/graph/Hypergraph.hpp>
 #include <networkit/graph/Graph.hpp>
+#include <networkit/distance/Dijkstra.hpp>
 #include <networkit/Globals.hpp>
 #include <map>
 #include <set>
@@ -251,14 +252,21 @@ TEST_P(HypergraphExpansionsGTest, testLineGraph) {
     EXPECT_FALSE(unweightedLineGraph.hasEdge(2,0));
 }
 
-TEST_P(HypergraphExpansionsGTest, testWeight) {
-    Graph graph(3, true);
-    graph.addEdge(0, 1, 2.5);
-    graph.addEdge(0, 2, 0.5);
+TEST_P(HypergraphExpansionsGTest, testLineGraphBetweenness) {
+    Hypergraph hGraph(7);
+    hGraph.addEdge({0, 1, 2});
+    hGraph.addEdge({0, 5, 6});
+    hGraph.addEdge({2, 3, 4});
+    hGraph.addEdge({3, 4, 5});
 
-    EXPECT_TRUE(graph.isWeighted());
-    EXPECT_EQ(graph.weight(0, 1), 2.5);
-    EXPECT_EQ(graph.weight(0, 2), 0.5);
+    std::vector<nodeweight> centrality_scores = HypergraphExpansions::lineGraphBetweenness(hGraph, false);
+    EXPECT_EQ(centrality_scores.at(0), 6.0);
+    EXPECT_EQ(centrality_scores.at(1), 0.0);
+    EXPECT_EQ(centrality_scores.at(2), 6.0);
+    EXPECT_EQ(centrality_scores.at(3), 1.0);
+    EXPECT_EQ(centrality_scores.at(4), 1.0);
+    EXPECT_EQ(centrality_scores.at(5), 6.0);
+    EXPECT_EQ(centrality_scores.at(6), 0.0);
 }
 
 } //namespace NetworKit
