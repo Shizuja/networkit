@@ -119,6 +119,16 @@ std::map<edgeid, std::set<node>> getAllEdgeMembers(Hypergraph &hypergraph);
 Graph lineGraph(Hypergraph &hypergraph, bool weighted = true);
 
 /*
+    Converts a hypergraph into its line graph (a simple graph) and computes betweenness centrality scores for its nodes. Alternative version which does not create a map to store all shortest paths on the line graph.
+
+    @param hypergraph Input hypergraph
+    @param normalized Set this parameter to true if scores should be normalized in the interval [0,1].
+    @return betweenness scores
+    
+*/
+std::vector<nodeweight> lineGraphBetweenness_alt(Hypergraph &hypergraph, bool normalized = false);
+
+/*
     Converts a hypergraph into its line graph (a simple graph) and computes betweenness centrality scores for its nodes
 
     @param hypergraph Input hypergraph

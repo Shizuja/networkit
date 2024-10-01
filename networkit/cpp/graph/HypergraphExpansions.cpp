@@ -277,7 +277,7 @@ Graph HypergraphExpansions::lineGraph(Hypergraph &hypergraph, bool weighted) {
     return lineGraph;
 }
 
-std::vector<nodeweight> HypergraphExpansions::lineGraphBetweenness(Hypergraph &hypergraph, bool normalized) {
+std::vector<nodeweight> HypergraphExpansions::lineGraphBetweenness_alt(Hypergraph &hypergraph, bool normalized) {
     
     Graph lineGraph = HypergraphExpansions::lineGraph(hypergraph, true);
     std::vector<nodeweight> centrality_scores(hypergraph.numberOfNodes());
@@ -314,6 +314,83 @@ std::vector<nodeweight> HypergraphExpansions::lineGraphBetweenness(Hypergraph &h
                                 shortest_paths = dijkstra.getPaths(edge2);
                         } else if (distance == shortest_length) {
                             for(auto path : dijkstra.getPaths(edge2)) {
+                                shortest_paths.insert(path);
+                            }
+                        }
+                    }
+                }
+                //Now that we have the shortest paths between node 1 and 2, do the betweenness scores
+                for(std::vector<node> path : shortest_paths) {
+                    for (size_t i = 0; i < path.size()-1; i++){
+                        std::set<node> intersection = HypergraphExpansions::getIntersection(hypergraph, path.at(i), path.at(i+1));
+                        //add 1 / intersection_size to centrality scores for each node in intersection and divide by number of paths if scores should be normalized
+                        for(node node : intersection) {
+                            centrality_scores.at(node) += 1.0 / double(intersection.size() * shortest_paths.size());
+                            number_of_shortest_paths++;
+                        }
+                    }
+                }
+            }
+        });
+    });
+
+    if(normalized) {
+        for (size_t i = 0; i < centrality_scores.size(); i++) {
+            centrality_scores.at(i) /= number_of_shortest_paths;
+        }
+    }
+    return centrality_scores;
+}
+
+std::vector<nodeweight> HypergraphExpansions::lineGraphBetweenness(Hypergraph &hypergraph, bool normalized) {
+    
+    Graph lineGraph = HypergraphExpansions::lineGraph(hypergraph, true);
+    std::vector<nodeweight> centrality_scores(hypergraph.numberOfNodes());
+    size_t number_of_shortest_paths = 0;
+
+    //Get a map of all edges a node is part of
+    std::map<node, std::set<edgeid>> edges;
+    hypergraph.forNodes([&](node node){
+        hypergraph.forEdges([&](edgeid eid){
+            if(hypergraph.hasNode(node, eid)) {
+                edges[node].insert(eid);
+            }
+        });
+    });
+
+    //calculate shortest paths on lineGraph and store them in a map
+    std::map<std::pair<node,node>,std::pair<std::set<std::vector<node>>,edgeweight>> line_graph_shortest_paths;
+    lineGraph.forNodes([&](node edge1){
+        Dijkstra dijkstra(lineGraph, edge1, true, false);
+        dijkstra.run();
+        lineGraph.forNodes([&](node edge2){
+            if(edge1 < edge2) {
+                line_graph_shortest_paths[{edge1, edge2}] = {dijkstra.getPaths(edge2), dijkstra.distance(edge2)};
+                line_graph_shortest_paths[{edge2, edge1}] = line_graph_shortest_paths[{edge1, edge2}];
+            }
+        });
+    });
+
+
+    //calculate centrality
+    hypergraph.forNodes([&](node node1){
+        hypergraph.forNodes([&](node node2){
+            if(node1 != node2) {
+                //variables for getting the shortest paths on the line graph
+                double shortest_length = std::numeric_limits<double>::max();
+                std::set<std::vector<node>> shortest_paths;
+                edgeweight distance;
+                //all edges node1 is part of
+                for(auto edge1 : edges[node1]) {
+                    //all edges node2 is part of
+                    for(auto edge2 : edges[node2]) {
+                        distance = line_graph_shortest_paths[{edge1, edge2}].second;
+                        //search shortest path
+                        if (distance < shortest_length) {
+                                shortest_length = distance;
+                                shortest_paths = line_graph_shortest_paths[{edge1, edge2}].first;
+                        } else if (distance == shortest_length) {
+                            for(auto path : line_graph_shortest_paths[{edge1, edge2}].first) {
                                 shortest_paths.insert(path);
                             }
                         }
