@@ -45,6 +45,7 @@ std::pair<NetworKit::Graph, std::map<NetworKit::node, std::pair<NetworKit::node,
 
     //iterate over all hyperedges and their nodes to determine all pairs of a node with its hyperedges
     hypergraph.forEdges([&](NetworKit::edgeid eid) {
+        //std::cout << "Step: " << eid << " / " << hypergraph.numberOfEdges() << std::endl;
         //std::cout << "current Edge: " << eid << std::endl;
         hypergraph.forNodes([&](NetworKit::node node) {
             //std::cout << "current node: " << node << std::endl;
@@ -62,6 +63,7 @@ std::pair<NetworKit::Graph, std::map<NetworKit::node, std::pair<NetworKit::node,
 
     //add edges to lineExpansion based on entries from nodeMap
     for(auto& iterator1 : nodeMap) {
+        //std::cout << "Step: " << iterator1.first << " / " << nodeMap.size() << std::endl;
         for(auto& iterator2 : nodeMap) {
             //access the pair of data from the original hypergraph in each nodeMap entry
             auto pair1 = iterator1.second;
@@ -116,18 +118,6 @@ NetworKit::Hypergraph HypergraphExpansions::reconstructHypergraphFromLineExpansi
     return hypergraph;
 }
 
-/*
-    if(hypergraph.hasNode(node, eid1) && hypergraph.hasNode(node, eid2)) {
-        size_t intersection_size = 1;
-        for (NetworKit::node neighbor : hypergraph.getNeighbors(node)) {
-            if(hypergraph.hasNode(neighbor, eid1) && hypergraph.hasNode(neighbor, eid2)) {
-                intersection_size++;
-            }
-        }
-        return intersection_size;
-    }
-*/
-
 std::set<node> HypergraphExpansions::getIntersection(Hypergraph &hypergraph, edgeid eid1, edgeid eid2) {
     std::set<node> set_eid1 = HypergraphExpansions::getEdgeMembers(hypergraph, eid1);
     std::set<node> set_eid2 = HypergraphExpansions::getEdgeMembers(hypergraph, eid2);
@@ -167,7 +157,7 @@ std::vector<nodeweight> HypergraphExpansions::lineExpansionWeightedBetweenness(G
 }
 
 std::vector<nodeweight> HypergraphExpansions::lineExpansionBetweenness(Graph &G, std::map<node, std::pair<node, edgeid>> &nodeMap, bool normalized, bool additive) {
-
+    //std::cout << "Start of betweenness calculation" << std::endl;
     Betweenness centrality(G, normalized);
     centrality.run();
     std::vector<nodeweight> betweennessScores(HypergraphExpansions::numberOfNodesFromNodeMap(nodeMap), 0);
@@ -255,6 +245,7 @@ Graph HypergraphExpansions::lineGraph(Hypergraph &hypergraph, bool weighted) {
         });
     } else {
         hypergraph.forEdges([&](edgeid eid1){
+            //std::cout << "Step: " << eid1 << " / " << hypergraph.numberOfEdges() << std::endl;
             hypergraph.forEdges([&](edgeid eid2){
                 //do not iterate over (1,0) and (0,1) but just one of them (for (eid1,eid2))
                 if(done.find(eid2) == done.end()) {
@@ -264,7 +255,7 @@ Graph HypergraphExpansions::lineGraph(Hypergraph &hypergraph, bool weighted) {
                     double union_size = double(nodes_in_eid1.size() + nodes_in_eid2.size() - intersection_size);
                     if(intersection_size > 0) {
                         if(!lineGraph.hasEdge(eid1,eid2)) {
-                            edgeweight weight = ((1.0/3.0)*(union_size + (union_size/intersection_size)))-1.0;
+                            edgeweight weight = (1.0/3.0)*(union_size + (union_size/intersection_size));
                             //std::cout << weight << " = 1/3 * (" << union_size << " + (" << union_size << "/" << intersection_size << ")) - 1" << std::endl;
                             lineGraph.addEdge(eid1, eid2, weight);
                         }
@@ -361,6 +352,7 @@ std::vector<nodeweight> HypergraphExpansions::lineGraphBetweenness(Hypergraph &h
     //calculate shortest paths on lineGraph and store them in a map
     std::map<std::pair<node,node>,std::pair<std::set<std::vector<node>>,edgeweight>> line_graph_shortest_paths;
     lineGraph.forNodes([&](node edge1){
+        //std::cout << "Step " << edge1 << " / " << lineGraph.numberOfNodes() << std::endl;
         Dijkstra dijkstra(lineGraph, edge1, true, false);
         dijkstra.run();
         lineGraph.forNodes([&](node edge2){
