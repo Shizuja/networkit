@@ -46,13 +46,10 @@ std::pair<NetworKit::Graph, std::map<NetworKit::node, std::pair<NetworKit::node,
     //iterate over all hyperedges and their nodes to determine all pairs of a node with its hyperedges
     hypergraph.forEdges([&](NetworKit::edgeid eid) {
         //std::cout << "Step: " << eid << " / " << hypergraph.numberOfEdges() << std::endl;
-        //std::cout << "current Edge: " << eid << std::endl;
         hypergraph.forNodes([&](NetworKit::node node) {
-            //std::cout << "current node: " << node << std::endl;
             if(hypergraph.hasNode(node, eid)) {
                 //add pair to map if a node is part of a hyperedge
                 nodeMap[newNodeID] = {node, eid};
-                //std::cout << newNodeID << " " << node << " " << eid << std::endl;
                 newNodeID++;
             }
         });
@@ -68,14 +65,10 @@ std::pair<NetworKit::Graph, std::map<NetworKit::node, std::pair<NetworKit::node,
             //access the pair of data from the original hypergraph in each nodeMap entry
             auto pair1 = iterator1.second;
             auto pair2 = iterator2.second;
-            //std::cout << "current Pair 1 (Node, Edgeid): " << pair1.first << pair1.second << std::endl;
-            //std::cout << "current Pair 2 (Node, Edgeid): " << pair2.first << pair2.second << std::endl;
             //only check pair that are not the same
             if(pair1.first != pair2.first || pair1.second != pair2.second){
-                //std::cout << "Not the same!" << std::endl;
                 //add edge if a pair of entries in nodeMap refer to the same node or hyperedge in the original hypergraph
                 if(pair1.first == pair2.first || pair1.second == pair2.second){
-                    //std::cout << "Connected!" << std::endl;
                     if(!lineExpansion.hasEdge(iterator1.first, iterator2.first)) {
                         lineExpansion.addEdge(iterator1.first, iterator2.first);
                     }
@@ -97,10 +90,8 @@ NetworKit::Hypergraph HypergraphExpansions::reconstructHypergraphFromLineExpansi
     lineExpansionGraph.forNodes([&](NetworKit::node node) {
         //get original node and hyperedge from nodeMap
         std::pair<NetworKit::node, NetworKit::edgeid> entry = nodeMap.at(node);
-        //std::cout << "Current Node: " << entry.first << " Current Edge: " << entry.second << std::endl;
         //add original node to corresponding hyperedge set
         hyperedges[entry.second].insert(entry.first);
-        //std::cout << "Node " << entry.first << " inserted into hyperedge " << entry.second << std::endl;
         //if node does not exist in hypergraph already, add it
         if (nodes.find(entry.first) == nodes.end()) {
             nodes.insert(entry.first);
@@ -160,6 +151,7 @@ std::vector<nodeweight> HypergraphExpansions::lineExpansionBetweenness(Graph &G,
     //std::cout << "Start of betweenness calculation" << std::endl;
     Betweenness centrality(G, normalized);
     centrality.run();
+    //std::cout << "merging centrality scores" << std::endl;
     std::vector<nodeweight> betweennessScores(HypergraphExpansions::numberOfNodesFromNodeMap(nodeMap), 0);
     std::vector<size_t> memberOfHyperedges(HypergraphExpansions::memberOfHyperedges(nodeMap));
     for(std::pair<const node, std::pair<node, edgeid>> entry : nodeMap) {
@@ -256,7 +248,7 @@ Graph HypergraphExpansions::lineGraph(Hypergraph &hypergraph, bool weighted) {
                     if(intersection_size > 0) {
                         if(!lineGraph.hasEdge(eid1,eid2)) {
                             edgeweight weight = (1.0/3.0)*(union_size + (union_size/intersection_size));
-                            //std::cout << weight << " = 1/3 * (" << union_size << " + (" << union_size << "/" << intersection_size << ")) - 1" << std::endl;
+                            //std::cout << weight << " = 1/3 * (" << union_size << " + (" << union_size << "/" << intersection_size << "))" << std::endl;
                             lineGraph.addEdge(eid1, eid2, weight);
                         }
                     }
@@ -366,6 +358,7 @@ std::vector<nodeweight> HypergraphExpansions::lineGraphBetweenness(Hypergraph &h
 
     //calculate centrality
     hypergraph.forNodes([&](node node1){
+        //std::cout << "Step " << node1 << " / " << hypergraph.numberOfNodes() << std::endl;
         hypergraph.forNodes([&](node node2){
             if(node1 != node2) {
                 //variables for getting the shortest paths on the line graph
