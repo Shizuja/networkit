@@ -12,6 +12,7 @@
 #include <set>
 #include <vector>
 #include <limits>
+#include <cmath>
 #include <iostream>
 
 namespace NetworKit {
@@ -402,6 +403,32 @@ std::vector<nodeweight> HypergraphExpansions::lineGraphBetweenness(Hypergraph &h
         }
     }
     return centrality_scores;
+}
+
+double hypergraphHeterogeneity(Hypergraph &hypergraph) {
+    size_t n = hypergraph.numberOfNodes();
+
+    std::vector<size_t> degrees(n);
+    size_t degree_sum = 0;
+
+    for (size_t i = 0; i < n; i++) {
+        degrees[i] = hypergraph.degree(i);
+        degree_sum += degrees[i];
+    }
+    
+    //average degree "my" of hypergraph
+    double my = double(degree_sum) / double(n);
+
+    //variance "sigma"
+    double sigma_2 = 0;
+    for (size_t i = 0; i < n; i++) {
+        sigma_2 += std::pow(double(degrees[i]) - my, 2.0);
+    }
+    sigma_2 /= n;
+    double sigma = sqrt(sigma_2);
+
+    //calculate the heterogeneity
+    return std::log10(sigma/my);
 }
 
 } //namespace NetworKit

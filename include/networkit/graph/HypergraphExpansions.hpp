@@ -138,6 +138,15 @@ std::vector<nodeweight> lineGraphBetweenness_alt(Hypergraph &hypergraph, bool no
 */
 std::vector<nodeweight> lineGraphBetweenness(Hypergraph &hypergraph, bool normalized = false);
 
+/*
+    Calculates the heterogeneity of a hypergraph
+
+    @param hypergraph Input hypergraph
+    @return heterogeneity scores
+    
+*/
+double hypergraphHeterogeneity(Hypergraph &hypergraph);
+
 } // namespace HypergraphExpansions
 
 } // namespace NetworKit
