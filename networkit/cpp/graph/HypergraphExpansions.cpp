@@ -405,7 +405,7 @@ std::vector<nodeweight> HypergraphExpansions::lineGraphBetweenness(Hypergraph &h
     return centrality_scores;
 }
 
-double hypergraphHeterogeneity(Hypergraph &hypergraph) {
+double HypergraphExpansions::hypergraphHeterogeneity(Hypergraph &hypergraph) {
     size_t n = hypergraph.numberOfNodes();
 
     std::vector<size_t> degrees(n);
